@@ -1,0 +1,60 @@
+# atomicas e consq logica
+def atomicas(formula):
+    if len(formula) == 1:
+        return set(formula)
+    if formula[0] == '~':
+        return atomicas(formula[1])
+    if type(formula[1]) == str:
+        return atomicas(formula[0]).union(atomicas(formula[2]))
+def consequencia_logica(premissas, formula):
+    atoms = atomicas(formula)
+    for premissa in premissas:
+        atoms = atoms.union(atomicas(premissa))
+    interpretaçao = {}
+    return tabela_consequencia(premissas, formula, atoms, interpretaçao)
+
+# tabela consequencia
+def tabela_consequencia(premissas, formula, atomicas, interpretaçao):
+  if len(atomicas) == 0:
+        if valor(formula, interpretaçao) == True:
+            return True
+        else:
+            valor_premissas = True
+            for premissa in premissas:
+                valor_premissas = valor_premissas and valor(premissa, interpretaçao)
+            if valor_premissas == False:
+                return True
+            else:
+                return False
+  atomicas2 = atomicas.copy()
+  atomica = atomicas2.pop()
+  interpretaçao1 = uniao(interpretaçao, {atomica: True})
+  interpretaçao2 = uniao(interpretaçao, {atomica: False})
+  return tabela_consequencia(premissas, formula, atomicas2, interpretaçao1) and tabela_consequencia(premissas, formula, atomicas2, interpretaçao2)
+
+# valor e uniao
+def valor(formula, interpretaçao):
+    if len(formula) == 1:
+        return interpretaçao[formula]
+    if formula[0] == '~':
+            return not valor(formula[1], interpretaçao)
+    if type(formula[1]) == str:
+        if formula[1] == '^':
+            return valor(formula[0], interpretaçao) and valor(formula[2], interpretaçao)
+        if formula[1] == 'v':
+            return valor(formula[0], interpretaçao) or valor(formula[2], interpretaçao)
+        if formula[1] == '>':
+            if valor(formula[0], interpretaçao) == True and valor(formula[2], interpretaçao) == False:
+                return False
+            else:
+                return True
+def uniao(dict1, dict2):
+    return dict(list(dict1.items()) + list(dict2.items()))
+
+premissas = ['r', '>', ['p', '^', ['~', 'q'], '^', 'r'], '~', ['p', '>', 'q']]
+formula = '~p>q'
+
+if consequencia_logica(premissas, formula) == True:
+    print('É consequência lógica.')
+else:
+    print('Não é consequência lógica.')
